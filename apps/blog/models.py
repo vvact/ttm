@@ -4,6 +4,13 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
+import random
+import string
+
+def generate_short_id():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=4))
+
 class Category(models.Model):
     name = models.CharField(max_length=255)
 
@@ -17,16 +24,22 @@ class Category(models.Model):
         return self.name
 
 class Article(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(
+        max_length=4, 
+        primary_key=True, 
+        default=generate_short_id,
+        editable=False
+    )
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(auto_now_add=True)
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
-    published_at = models.DateTimeField(null=True, blank=True)
+
 
 
     def save(self, *args, **kwargs):
